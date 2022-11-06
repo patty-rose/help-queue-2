@@ -1,8 +1,18 @@
-# Getting Started with Create React App
+## Important Note to Epicodus Students
+
+This project contains all the code from the LearnHowToProgram.com [Section 2: React Fundamentals](https://www.learnhowtoprogram.com/react/react-fundamentals) coursework in which we created a Help Queue application in [React.js](https://reactjs.org/). 
+
+It is meant to be used as a starter repo to continue the Help Queue project in three separate learning sections of [the _React_ course](https://www.learnhowtoprogram.com/react) on LearnHowToProgram.com: 
+
+* Section 3 "React with Redux", starting in the lesson titled ["Setting up Our First Redux Project"](https://www.learnhowtoprogram.com/react/react-with-redux/setting-up-our-first-project).
+* Section 4 "React with NoSQL", starting in the lessons titled ["Refactoring Help Queue to Use Hooks"](https://www.learnhowtoprogram.com/react/react-with-nosql/refactoring-help-queue-to-use-hooks).
+* Section 5 "React with APIs", starting in the lesson title ["React Context"](https://www.learnhowtoprogram.com/react/react-with-apis/react-context)
+
+---
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+### Available Scripts
 
 In the project directory, you can run:
 
