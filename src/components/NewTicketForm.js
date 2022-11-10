@@ -11,7 +11,7 @@ function NewTicketForm(props){
       names: event.target.names.value, 
       location: event.target.location.value, 
       issue: event.target.issue.value,
-      timestamp: serverTimestamp()
+      timeOpen: serverTimestamp()
     });
   }
 

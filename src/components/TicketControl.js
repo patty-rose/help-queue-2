@@ -4,7 +4,7 @@ import EditTicketForm from './EditTicketForm';
 import TicketDetail from './TicketDetail';
 
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, onSnapshot, updateDoc, doc, deleteDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, updateDoc, doc, deleteDoc, query, orderBy } from "firebase/firestore";
 import { db, auth } from './../firebase.js'
 
 import { formatDistanceToNow } from 'date-fns';
@@ -48,26 +48,29 @@ function TicketControl() {
   //useEffect hooks:
 
   useEffect(() => {
+    const queryByTimestamp = query(
+      collection(db, "tickets"), 
+      orderBy('timeOpen')//('timeOpen', 'desc') for descending..
+    );//The queryByTimestamp query get all documents in the "tickets" collection and orders them by the value set in each ticket's timeOpen field. The order of the tickets will be ascending: older tickets will be at the top and newer tickets will be at the bottom.
+
     //We return a cleanup function for the useEffect() hook to run. useEffect() will call this function when the TicketControl component unmounts, and it will unsubscribe our database listener; by "unsubscribe", we mean to stop the listener. 
     const unSubscribe = onSnapshot(//onSnapshot takes 3 arguments: doc or collection reference taht we want our listener to listen to, callback func to handle successful requests, and callback func to handle errors.
-      collection(db, "tickets"), //we're listening for changes to the tickets collection.
-      (collectionSnapshot) => {
-        const tickets = [];
-        collectionSnapshot.forEach((doc) => {
-          console.log(doc);
-          const timeOpen = doc.get('timestamp', {serverTimestamps: "estimate"}).toDate();//gets the value of the timeOpen field for the current document; this value is a Firestore Timestamp object. Then we call the Timestamp.toDate() method on the server timestamp to turn it into a date data that's formatted for JavaScript.
-          console.log(timeOpen);
-          const jsDate = new Date(timeOpen);
-            tickets.push({
-              names: doc.data().names, 
-              location: doc.data().location, 
-              issue: doc.data().issue, 
-              timeOpen: jsDate,
-              formattedWaitTime: formatDistanceToNow(jsDate),
-              id: doc.id
-            });
+    queryByTimestamp, 
+    (querySnapshot) => {
+      const tickets = [];
+      querySnapshot.forEach((doc) => {
+        const timeOpen = doc.get('timeOpen', {serverTimestamps: "estimate"}).toDate();//gets the value of the timeOpen field for the current document; this value is a Firestore Timestamp object. Then we call the Timestamp.toDate() method on the server timestamp to turn it into a date data that's formatted for JavaScript.
+        const jsDate = new Date(timeOpen);
+        tickets.push({
+          names: doc.data().names, 
+          location: doc.data().location, 
+          issue: doc.data().issue, 
+          timeOpen: jsDate,
+          formattedWaitTime: formatDistanceToNow(jsDate),
+          id: doc.id
         });
-        setMainTicketList(tickets);//we're looping through the collection of returned ticket documents to construct an array of JavaScript ticket objects. When we've finished constructing the array, we call setMainTicketList() to update the mainTicketList state variable with the array of tickets.
+      });
+      setMainTicketList(tickets);//we're looping through the collection of returned ticket documents to construct an array of JavaScript ticket objects. When we've finished constructing the array, we call setMainTicketList() to update the mainTicketList state variable with the array of tickets.
       },
       (error) => {
         setError(error.message);
