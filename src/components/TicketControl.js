@@ -7,6 +7,8 @@ import React, { useState, useEffect } from 'react';
 import { collection, addDoc, onSnapshot, updateDoc, doc, deleteDoc } from "firebase/firestore";
 import { db, auth } from './../firebase.js'
 
+import { formatDistanceToNow} from 'date-fns';
+
 //updateDoc() will allow us to update a document in Firestore.
 // deleteDoc() will allow us to delete documents in Firestore.
 // doc() will allow us to reference a document in the firestore database. With doc(), we can specify the location of a new document or the location of an existing document.
@@ -43,7 +45,8 @@ function TicketControl() {
 
   const [error, setError] = useState(null);//for useEffect error handling
 
-  //useEffect hook:
+  //useEffect hooks:
+
   useEffect(() => {
     //We return a cleanup function for the useEffect() hook to run. useEffect() will call this function when the TicketControl component unmounts, and it will unsubscribe our database listener; by "unsubscribe", we mean to stop the listener. 
     const unSubscribe = onSnapshot(//onSnapshot takes 3 arguments: doc or collection reference taht we want our listener to listen to, callback func to handle successful requests, and callback func to handle errors.
@@ -51,10 +54,14 @@ function TicketControl() {
       (collectionSnapshot) => {
         const tickets = [];
         collectionSnapshot.forEach((doc) => {
+          const timeOpen = doc.get('timeOpen', {serverTimestamps: "estimate"}).toDate();//gets the value of the timeOpen field for the current document; this value is a Firestore Timestamp object. Then we call the Timestamp.toDate() method on the server timestamp to turn it into a date data that's formatted for JavaScript.
+          const jsDate = new Date(timeOpen);
             tickets.push({
               names: doc.data().names, 
               location: doc.data().location, 
               issue: doc.data().issue, 
+              timeOpen: jsDate,
+              formattedWaitTime: formatDistanceToNow(jsDate),
               id: doc.id
             });
         });
@@ -69,6 +76,26 @@ function TicketControl() {
 
   }, []);//We've passed in an empty array as the second argument, which means our effect will run once after our component's first render. Just like with event listeners, we only want to create our Firestore database listener once.
   // In terms of Firestore object types, this parameter is a QuerySnapshot object that's made up of one or more DocumentSnapshot objects. Each of these object types have their own properties and methods. This is important to note, because when we call collectionSnapshot.forEach(...), we're actually calling a QuerySnapshot method, and not JavaScript's Array.prototype.forEach() method. However, QuerySnapshot has a handy docs property that returns an array of the collection's data. That means we can call any JavaScript array method on collectionSnapshot.docs. Here's an example of using Array.prototype.map() instead of Array.prototype.forEach():
+
+  useEffect(() => {
+    function updateTicketElapsedWaitTime() {
+      const newMainTicketList = mainTicketList.map(ticket => {
+        const newFormattedWaitTime = formatDistanceToNow(ticket.timeOpen);
+        return {...ticket, formattedWaitTime: newFormattedWaitTime};
+      });
+      setMainTicketList(newMainTicketList);
+    }
+
+    const waitTimeInterval = setInterval(() =>//JavaScript's setInterval() function takes two arguments: a function that should be run on every interval, and the length of the interval in milliseconds.
+      updateTicketElapsedWaitTime(), 
+      60000
+    );
+
+    return function cleanup() {
+      clearInterval(waitTimeInterval);//prevents the creation of multiple intervals!
+    }
+  }, [mainTicketList])
+
 
   const handleDeletingTicket = async (id) => {
     await deleteDoc(doc(db, "tickets", id));
