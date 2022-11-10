@@ -4,10 +4,10 @@ import EditTicketForm from './EditTicketForm';
 import TicketDetail from './TicketDetail';
 
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, onSnapshot, updateDoc, doc, deleteDoc } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, updateDoc, doc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { db, auth } from './../firebase.js'
 
-import { formatDistanceToNow} from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 
 //updateDoc() will allow us to update a document in Firestore.
 // deleteDoc() will allow us to delete documents in Firestore.
@@ -54,7 +54,9 @@ function TicketControl() {
       (collectionSnapshot) => {
         const tickets = [];
         collectionSnapshot.forEach((doc) => {
-          const timeOpen = doc.get('timeOpen', {serverTimestamps: "estimate"}).toDate();//gets the value of the timeOpen field for the current document; this value is a Firestore Timestamp object. Then we call the Timestamp.toDate() method on the server timestamp to turn it into a date data that's formatted for JavaScript.
+          console.log(doc);
+          const timeOpen = doc.get('timestamp', {serverTimestamps: "estimate"}).toDate();//gets the value of the timeOpen field for the current document; this value is a Firestore Timestamp object. Then we call the Timestamp.toDate() method on the server timestamp to turn it into a date data that's formatted for JavaScript.
+          console.log(timeOpen);
           const jsDate = new Date(timeOpen);
             tickets.push({
               names: doc.data().names, 
